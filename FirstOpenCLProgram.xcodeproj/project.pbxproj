@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		9F49BF701B5FA55300A6DA36 /* main.c in Sources */ = {isa = PBXBuildFile; fileRef = 9F49BF6F1B5FA55300A6DA36 /* main.c */; };
+		9F49BF771B5FA5E800A6DA36 /* OpenCL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9F49BF761B5FA5E800A6DA36 /* OpenCL.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -25,6 +26,7 @@
 /* Begin PBXFileReference section */
 		9F49BF6C1B5FA55300A6DA36 /* FirstOpenCLProgram */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = FirstOpenCLProgram; sourceTree = BUILT_PRODUCTS_DIR; };
 		9F49BF6F1B5FA55300A6DA36 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
+		9F49BF761B5FA5E800A6DA36 /* OpenCL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenCL.framework; path = System/Library/Frameworks/OpenCL.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -32,6 +34,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9F49BF771B5FA5E800A6DA36 /* OpenCL.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -41,6 +44,7 @@
 		9F49BF631B5FA55300A6DA36 = {
 			isa = PBXGroup;
 			children = (
+				9F49BF761B5FA5E800A6DA36 /* OpenCL.framework */,
 				9F49BF6E1B5FA55300A6DA36 /* FirstOpenCLProgram */,
 				9F49BF6D1B5FA55300A6DA36 /* Products */,
 			);
