@@ -71,7 +71,7 @@ int main( int argc, const char * argv[]) {
     cl_program clProgram = clCreateProgramWithSource( clContext, 1, (const char **)&kernelSource, NULL, &clerr);
     
     if( clerr != CL_SUCCESS){
-        
+        //
         printf("Error during clCreateProgramWithSource\n");
         return EXIT_FAILURE;
     }
