@@ -24,7 +24,15 @@ const char *kernelSource = "\n" \
 
 ////////////////////////////////////////////////////////////////////////////////
 
+#define NUM_OF_VALUES 1000
 int main( int argc, const char * argv[]) {
+    
+    unsigned int numOfValues = NUM_OF_VALUES;
+    float input[NUM_OF_VALUES];
+    float output[NUM_OF_VALUES];
+    
+    for(int i = 0; i < NUM_OF_VALUES; i++)
+        input[i] = rand() / (float)RAND_MAX;
     
     cl_int clerr = CL_SUCCESS;
     
@@ -97,6 +105,94 @@ int main( int argc, const char * argv[]) {
         return EXIT_FAILURE;
     }
     
+    //now our executable is ready. however, executable will need the memory allocations that
+    //need to be handled by the host (this side of code) because it uses data from global memory.
+    //dynamic allocation can only be made by host
+    cl_mem d_input, d_output;
+    size_t dataSize = NUM_OF_VALUES * sizeof(float);
+    
+    //memory allocated to pass memory adresses as argument to the kernel function we will call.
+    //here note that data in input array is copied to d_input while creating the buffer.
+    d_input = clCreateBuffer( clContext, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, dataSize, input, NULL);
+    d_output = clCreateBuffer( clContext, CL_MEM_WRITE_ONLY, dataSize, NULL, NULL);
+    
+    if( !d_input || !d_output){
+        
+        printf("Error during clCreateBuffer\n");
+        return EXIT_FAILURE;
+    }
+    
+    clerr = 0;
+    clerr = clSetKernelArg( clKernel, 0, sizeof(cl_mem), (void *)&d_input);
+    clerr &= clSetKernelArg( clKernel, 1, sizeof(cl_mem), (void *)&d_output);
+    clerr &= clSetKernelArg( clKernel, 2, sizeof(unsigned int), (void *)&numOfValues);
+    
+    if( clerr != CL_SUCCESS){
+        
+        printf("Error during clSetKernelArg\n");
+        return EXIT_FAILURE;
+    }
+    
+    for( int curDevice = 0; curDevice < numOfDevices; curDevice++){
+        
+        size_t localWorkGroupSize;
+        clerr = clGetKernelWorkGroupInfo( clKernel, clDevices[curDevice], CL_KERNEL_WORK_GROUP_SIZE,
+                                         sizeof(size_t), &localWorkGroupSize, NULL);
+        printf("info: local work group size for device %d is %zu\n", curDevice, localWorkGroupSize);
+        if( clerr != CL_SUCCESS){
+            
+            printf("Error during clGetKernelWorkGroupInfo for device id %d\n", curDevice);
+            return EXIT_FAILURE;
+        }
+        
+        //the only constraint for the global_work_size is that it must be a multiple of the
+        //local_work_size (for each dimension).
+        size_t globalWorkItems = (CL_DEVICE_MAX_WORK_ITEM_SIZES/localWorkGroupSize)*localWorkGroupSize;
+        clerr = clEnqueueNDRangeKernel( clCommandQueues[curDevice], clKernel, 1, NULL, &globalWorkItems,
+                                       &localWorkGroupSize, 0, NULL, NULL);
+        
+        if( clerr != CL_SUCCESS){
+            
+            printf("Error during clEnqueueNDRangeKernel\n");
+            return EXIT_FAILURE;
+        }
+    }
+    
+    //block until all works in all queues are finished
+    for( int curDevice = 0; curDevice < numOfDevices; curDevice++)
+        clFinish(clCommandQueues[curDevice]);
+    
+    //for( int curDevice = 0; curDevice < numOfDevices && clerr == CL_SUCCESS; curDevice++)
+        clerr = clEnqueueReadBuffer( clCommandQueues[numOfDevices-1], d_output, CL_TRUE, 0,
+                                    sizeof(float)*numOfValues, output, 0, NULL, NULL);
+    
+    if( clerr != CL_SUCCESS){
+        
+        printf("Error during clEnqueueReadBuffer\n");
+        return EXIT_FAILURE;
+    }
+    
+    // Validate our results
+    int correct = 0;
+    for(int i = 0; i < numOfValues; i++)
+    {
+        if(output[i] == input[i] * input[i])
+            correct++;
+        else
+            printf("%d %f %f\n", i, output[i], input[i]);
+    }
+    
+    // Print a brief summary detailing the results
+    printf("Computed '%d/%d' correct values!\n", correct, numOfValues);
+    
+    // Shutdown and cleanup
+    clReleaseMemObject(d_input);
+    clReleaseMemObject(d_output);
+    clReleaseProgram(clProgram);
+    clReleaseKernel(clKernel);
+    for( int curDevice = 0; curDevice < numOfDevices; curDevice++)
+        clReleaseCommandQueue(clCommandQueues[curDevice]);
+    clReleaseContext(clContext);
     
     return 0;
 }
