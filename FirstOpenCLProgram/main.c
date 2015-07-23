@@ -18,7 +18,7 @@ const char *kernelSource = "\n" \
 "{                                                                      \n" \
 "   int i = get_global_id(0);                                           \n" \
 "   if(i < count)                                                       \n" \
-"       output[i] = input[i];                                \n" \
+"       output[i] = input[i] * input[i];                                \n" \
 "}                                                                      \n" \
 "\n";
 
@@ -176,7 +176,7 @@ int main( int argc, const char * argv[]) {
     int correct = 0;
     for(int i = 0; i < numOfValues; i++)
     {
-        if(output[i] == input[i])
+        if(output[i] == input[i] * input[i])
             correct++;
         else
             printf("%d %f %f\n", i, output[i], input[i]);
