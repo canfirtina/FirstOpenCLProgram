@@ -18,13 +18,13 @@ const char *kernelSource = "\n" \
 "{                                                                      \n" \
 "   int i = get_global_id(0);                                           \n" \
 "   if(i < count)                                                       \n" \
-"       output[i] = input[i] * input[i];                                \n" \
+"       output[i] = input[i];                                \n" \
 "}                                                                      \n" \
 "\n";
 
 ////////////////////////////////////////////////////////////////////////////////
 
-#define NUM_OF_VALUES 1000
+#define NUM_OF_VALUES 100000
 int main( int argc, const char * argv[]) {
     
     unsigned int numOfValues = NUM_OF_VALUES;
@@ -147,7 +147,7 @@ int main( int argc, const char * argv[]) {
         
         //the only constraint for the global_work_size is that it must be a multiple of the
         //local_work_size (for each dimension).
-        size_t globalWorkItems = (CL_DEVICE_MAX_WORK_ITEM_SIZES/localWorkGroupSize)*localWorkGroupSize;
+        size_t globalWorkItems = (numOfValues/localWorkGroupSize + 1)*localWorkGroupSize;
         clerr = clEnqueueNDRangeKernel( clCommandQueues[curDevice], clKernel, 1, NULL, &globalWorkItems,
                                        &localWorkGroupSize, 0, NULL, NULL);
         
@@ -176,7 +176,7 @@ int main( int argc, const char * argv[]) {
     int correct = 0;
     for(int i = 0; i < numOfValues; i++)
     {
-        if(output[i] == input[i] * input[i])
+        if(output[i] == input[i])
             correct++;
         else
             printf("%d %f %f\n", i, output[i], input[i]);
